@@ -24,6 +24,10 @@ import org.gjt.sp.jedit.EBComponent;
 import org.gjt.sp.jedit.EditBus;
 import org.gjt.sp.jedit.EditPlugin;
 import org.gjt.sp.jedit.jEdit;
+import org.gjt.sp.jedit.msg.ViewUpdate;
+import org.gjt.sp.jedit.EBMessage;
+import org.gjt.sp.jedit.View;
+import org.gjt.sp.util.Log;
 
 import com.articulate.sigma.jedit.fastac.FastACBootstrap;
 
@@ -41,7 +45,7 @@ import com.articulate.sigma.jedit.fastac.FastACBootstrap;
  *
  * If the property is not set, the plugin defaults to "both".
  */
-public class SUMOjEditPlugin extends EditPlugin {
+public class SUMOjEditPlugin extends EditPlugin implements EBComponent {
     /**
      * The plugin name and option prefix used by jEdit.
      */
@@ -70,6 +74,18 @@ public class SUMOjEditPlugin extends EditPlugin {
         ((SUMOjEdit)sje).startBackgroundThread(((SUMOjEdit) sje));
         EditBus.addToBus(sje);
 
+        // Register this plugin to listen for view events
+        EditBus.addToBus(this);
+
+        // DEBUG LINE FOR VERSION CONTROL DISPLAY
+        Log.log(Log.WARNING, this, "SUMOjEditPlugin: Attempting to install build number display...");
+
+        // Initialize build number display for all existing views
+        org.gjt.sp.jedit.View[] views = jEdit.getViews();
+        for (org.gjt.sp.jedit.View view : views) {
+            BuildNumberDisplay.installInView(view);
+        }
+
         // Read the autocomplete mode and normalize to lower case.
         String mode = jEdit.getProperty(PROP_AC_MODE, "both").toLowerCase();
 
@@ -90,10 +106,23 @@ public class SUMOjEditPlugin extends EditPlugin {
         // Remove the main SUMOjEdit component from the bus.
         EditBus.removeFromBus(sje);
 
+        // Unregister this plugin from the bus
+        EditBus.removeFromBus(this);
+
         // Remove the inline completion handler if it was started.
         if (sjech != null) {
             EditBus.removeFromBus(sjech);
             sjech = null;
+        }
+    }
+
+    @Override
+    public void handleMessage(EBMessage msg) {
+        if (msg instanceof ViewUpdate) {
+            ViewUpdate vu = (ViewUpdate) msg;
+            if (vu.getWhat() == ViewUpdate.CREATED) {
+                BuildNumberDisplay.installInView(vu.getView());
+            }
         }
     }
 

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!DOCTYPE SERVICES SYSTEM "services.dtd">
+
+<SERVICES>
+    <!-- Register the SUMOjEdit status bar widget -->
+    <SERVICE CLASS="org.gjt.sp.jedit.gui.statusbar.StatusWidgetFactory" NAME="sumojedit-version">
+        com.articulate.sigma.jedit.SUMOjEditStatusBarWidget
+    </SERVICE>
+</SERVICES>

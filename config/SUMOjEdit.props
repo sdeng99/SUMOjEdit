@@ -140,3 +140,10 @@ even better!\
 \n\n\n\
 \
 Close this dialog by clicking OK.
+
+# Status bar widget configuration
+view.status.show-sumojedit-version=true
+view.status.sumojedit-version.label=SUMOjEdit
+
+# Widget service registration
+plugin.com.articulate.sigma.jedit.SUMOjEditPlugin.services=services.xml

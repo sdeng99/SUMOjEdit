@@ -1,5 +1,9 @@
 <project xmlns:ivy="antlib:org.apache.ivy.ant"
          name="SUMOjEdit" default="all" basedir=".">
+
+    <!-- Load build properties -->
+    <property file="build.properties"/>
+
     <description>
         This is an ant build.xml file for building the SUMOjEdit plugin for jEdit.
     </description>
@@ -104,7 +108,7 @@
         <copy todir="lib" file="../sigmakee/build/sigmakee.jar"/>
     </target>
 
-    <target name="compile" depends="sigma.antlr" description="Compile ${app.name}">
+    <target name="compile" depends="sigma.antlr,generate-build-info" description="Compile ${app.name}">
         <javac destdir="${build.home}/classes"
                debug="on"
                optimize="on"
@@ -161,6 +165,8 @@
     </target>
     <target name="deploy" depends="dist">
         <copy todir="${jedit.home}/jars" file="${app.name}.jar" overwrite="true"/>
+        <copy todir="${jedit.home}/jars" file="config/services.xml" overwrite="true"/>
+        <copy todir="${jedit.home}/properties" file="config/SUMOjEdit.props" overwrite="true"/>
         <copy todir="${jedit.home}/jars" overwrite="true">
             <fileset dir="lib">
                 <exclude name="hamcrest-core*"/>
@@ -282,6 +288,32 @@ alias jedit="java -Xmx10g -Xss1m -jar $JEDIT_JAR"
         <exec executable="sh" osfamily="unix">
             <arg value="xdg-open ${report.html}"/>
         </exec>
+    </target>
+
+    <!-- Target to increment build number -->
+    <target name="increment-build" description="Increment the build number">
+        <propertyfile file="build.properties">
+            <entry key="build.number" type="int" operation="+" value="1"/>
+            <entry key="build.date" type="date" value="now" pattern="yyyy.MM.dd"/>
+        </propertyfile>
+        <echo message="Build number incremented to: ${build.number}"/>
+    </target>
+    
+    <!-- Target to generate BuildInfo.java from properties -->
+    <target name="generate-build-info" depends="increment-build">
+        <echo file="src/com/articulate/sigma/jedit/BuildInfo.java">package com.articulate.sigma.jedit;
+
+public final class BuildInfo {
+    public static final String VERSION = "${build.version}";
+    public static final String BUILD_NUMBER = "${build.number}";
+    public static final String BUILD_DATE = "${build.date}";
+    public static final String BUILD_TYPE = "${build.type}";
+    public static final String FULL_VERSION = VERSION + "-" + BUILD_TYPE + "-b" + BUILD_NUMBER;
+    
+    private BuildInfo() {}
+}
+        </echo>
+        <echo message="BuildInfo.java generated with version: ${build.version}-b${build.number}"/>
     </target>
 
     <target name="test.kif" depends="compile.test" description="Syntax check an individual *.kif file or directory of *.kif files">
