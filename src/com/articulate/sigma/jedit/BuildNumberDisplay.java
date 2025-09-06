@@ -101,13 +101,7 @@ public class BuildNumberDisplay extends JPanel {
                 // Add the display panel to status bar
                 BuildNumberDisplay display = getInstance();
                 
-                GridBagConstraints gbc = new GridBagConstraints();
-                gbc.gridx = GridBagConstraints.RELATIVE;
-                gbc.weightx = 0;
-                gbc.fill = GridBagConstraints.NONE;
-                gbc.anchor = GridBagConstraints.EAST;
-                
-                statusBar.add(display, gbc);
+                statusBar.add(display, "right");
                 statusBar.revalidate();
                 statusBar.repaint();
                 

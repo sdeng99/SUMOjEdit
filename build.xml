@@ -163,7 +163,22 @@
             </fileset>
         </delete>
     </target>
-    <target name="deploy" depends="dist">
+
+    <!-- Add this target before the deploy target in build.xml -->
+    <target name="prepare-jedit-dirs" description="Prepare jEdit directories, handling properties file/directory conflict">
+        <!-- Create jars directory if it doesn't exist -->
+        <mkdir dir="${jedit.home}/jars"/>
+        
+        <!-- Remove properties if it exists as a file, then create as directory -->
+        <delete file="${jedit.home}/properties" quiet="true" failonerror="false"/>
+        <mkdir dir="${jedit.home}/properties"/>
+        
+        <!-- Create modes directory if it doesn't exist -->
+        <mkdir dir="${jedit.home}/modes"/>
+    </target>
+
+    <!-- Modified deploy target -->
+    <target name="deploy" depends="dist,prepare-jedit-dirs">
         <copy todir="${jedit.home}/jars" file="${app.name}.jar" overwrite="true"/>
         <copy todir="${jedit.home}/jars" file="config/services.xml" overwrite="true"/>
         <copy todir="${jedit.home}/properties" file="config/SUMOjEdit.props" overwrite="true"/>
@@ -303,17 +318,24 @@ alias jedit="java -Xmx10g -Xss1m -jar $JEDIT_JAR"
     <target name="generate-build-info" depends="increment-build">
         <echo file="src/com/articulate/sigma/jedit/BuildInfo.java">package com.articulate.sigma.jedit;
 
-public final class BuildInfo {
-    public static final String VERSION = "${build.version}";
-    public static final String BUILD_NUMBER = "${build.number}";
-    public static final String BUILD_DATE = "${build.date}";
-    public static final String BUILD_TYPE = "${build.type}";
-    public static final String FULL_VERSION = VERSION + "-" + BUILD_TYPE + "-b" + BUILD_NUMBER;
-    
-    private BuildInfo() {}
-}
+    public final class BuildInfo {
+        public static final String VERSION = "${build.version}";
+        public static final String BUILD_NUMBER = "${build.number}";
+        public static final String BUILD_DATE = "${build.date}";
+        public static final String BUILD_TYPE = "${build.type}";
+        public static final String FULL_VERSION = VERSION + "-" + BUILD_TYPE + "-b" + BUILD_NUMBER;
+        
+        private BuildInfo() {}
+    }
         </echo>
+        
+        <!-- Update the version in SUMOjEdit.props -->
+        <replaceregexp file="config/SUMOjEdit.props"
+                    match="plugin\.com\.articulate\.sigma\.jedit\.SUMOjEditPlugin\.version=.*"
+                    replace="plugin.com.articulate.sigma.jedit.SUMOjEditPlugin.version=${build.version}-b${build.number}"/>
+        
         <echo message="BuildInfo.java generated with version: ${build.version}-b${build.number}"/>
+        <echo message="SUMOjEdit.props updated with version: ${build.version}-b${build.number}"/>
     </target>
 
     <target name="test.kif" depends="compile.test" description="Syntax check an individual *.kif file or directory of *.kif files">

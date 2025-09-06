@@ -62,6 +62,7 @@ public class SUMOjEditPlugin extends EditPlugin implements EBComponent {
 
     @Override
     public void start() {
+        Log.log(Log.WARNING, this, "=== SUMOjEditPlugin START - Version: " + BuildInfo.FULL_VERSION + " ===");
         // Ensure a default mode is set if none exists.
         if (jEdit.getProperty(PROP_AC_MODE) == null) {
             jEdit.setProperty(PROP_AC_MODE, "both");
@@ -79,6 +80,29 @@ public class SUMOjEditPlugin extends EditPlugin implements EBComponent {
 
         // DEBUG LINE FOR VERSION CONTROL DISPLAY
         Log.log(Log.WARNING, this, "SUMOjEditPlugin: Attempting to install build number display...");
+
+        // ADD NEW DEBUG CODE HERE:
+        Log.log(Log.WARNING, this, "SUMOjEditPlugin: Checking status bar widget registration...");
+
+        // Check if the widget factory is registered
+        String[] widgetFactories = org.gjt.sp.jedit.ServiceManager.getServiceNames("org.gjt.sp.jedit.gui.statusbar.StatusWidgetFactory");
+
+        Log.log(Log.WARNING, this, "Available status widget factories: " + widgetFactories.length + " found");
+        for (String factory : widgetFactories) {
+            Log.log(Log.WARNING, this, "  - Factory: " + factory);
+        }
+
+        // Check if our specific widget is registered
+        Object sumoWidget = org.gjt.sp.jedit.ServiceManager.getService("org.gjt.sp.jedit.gui.statusbar.StatusWidgetFactory", "sumojedit-version");
+        if (sumoWidget != null) {
+            Log.log(Log.WARNING, this, "SUMOjEdit status widget IS registered: " + sumoWidget.getClass().getName());
+        } else {
+            Log.log(Log.WARNING, this, "SUMOjEdit status widget is NOT registered!");
+        }
+
+        // Check jEdit properties
+        String showWidget = jEdit.getProperty("view.status.show-sumojedit-version");
+        Log.log(Log.WARNING, this, "view.status.show-sumojedit-version = " + showWidget);
 
         // Initialize build number display for all existing views
         org.gjt.sp.jedit.View[] views = jEdit.getViews();
